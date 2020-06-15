@@ -1,6 +1,7 @@
 var bodyParser = require('body-parser'),
     express = require('express'),
     mongoose = require('mongoose'),
+    flash = require('connect-flash'),
     methodOverride = require('method-override'),
     passport = require('passport'),
     LocalStrategy = require('passport-local'),
@@ -34,6 +35,7 @@ app.use(require("express-session")({
     saveUninitialized: false
 }));
 
+app.use(flash());
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(methodOverride("_method"));
@@ -47,6 +49,8 @@ passport.deserializeUser(CampgroundUser.deserializeUser());
 
 app.use((req, res, next) => {
     res.locals.currentUser = req.user;
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
     next();
 });
 

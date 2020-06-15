@@ -4,11 +4,13 @@ var router = express.Router();
 var Campground = require('../models/campground'),
     Comment = require('../models/comment');
 
-router.get("/campgrounds/:id/comments/new", isLoggedIn, (req, res) => {
+var middleware = require('../middleware');//index.js file contents will be taken automatically
+
+router.get("/campgrounds/:id/comments/new",  middleware.isLoggedIn, (req, res) => {
     res.render("comments/new");
 });
 
-router.post("/campgrounds/:id/comments/new", isLoggedIn, (req, res) => {
+router.post("/campgrounds/:id/comments/new", middleware.isLoggedIn, (req, res) => {
     Campground.findById(req.params.id, (err, campground) => {
         var postId = req.params.id;
         if(err){
@@ -19,7 +21,8 @@ router.post("/campgrounds/:id/comments/new", isLoggedIn, (req, res) => {
             var comm = {text: text}
             Comment.create(comm, (err, newComment) => {
                 if(err){
-                    console.log(err);
+                    req.flash("error", "Something went wrong.");
+                    //console.log(err);
                 }else{
                     //console.log(newComment);
                     newComment.author.id = req.user._id;
@@ -27,6 +30,7 @@ router.post("/campgrounds/:id/comments/new", isLoggedIn, (req, res) => {
                     newComment.save();
                     campground.comments.push(newComment);
                     campground.save();
+                    req.flash("success", "Successfully added a comment.");
                     res.redirect("/campgrounds/"+ postId);
                 }
             });
@@ -34,7 +38,7 @@ router.post("/campgrounds/:id/comments/new", isLoggedIn, (req, res) => {
     });
 });
 
-router.get("/campgrounds/:id/comments/:comment_id/edit", checkCommentOwnership, (req, res) => {
+router.get("/campgrounds/:id/comments/:comment_id/edit", middleware.checkCommentOwnership, (req, res) => {
     Comment.findById(req.params.comment_id, (err, foundComment) => {
         if(err){
             res.redirect("back");
@@ -44,7 +48,7 @@ router.get("/campgrounds/:id/comments/:comment_id/edit", checkCommentOwnership, 
     });
 });
 
-router.put("/campgrounds/:id/comments/:comment_id", checkCommentOwnership, (req, res) => {
+router.put("/campgrounds/:id/comments/:comment_id", middleware.checkCommentOwnership, (req, res) => {
     Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, (err, foundComment) => {
         if(err){
             res.redirect("back");
@@ -54,7 +58,7 @@ router.put("/campgrounds/:id/comments/:comment_id", checkCommentOwnership, (req,
     });
 });
 
-router.delete("/campgrounds/:id/comments/:comment_id", checkCommentOwnership, (req, res) => {
+router.delete("/campgrounds/:id/comments/:comment_id", middleware.checkCommentOwnership, (req, res) => {
     Comment.findByIdAndDelete(req.params.comment_id, (err, foundComment) => {
         if(err){
             res.redirect("back");
@@ -64,33 +68,32 @@ router.delete("/campgrounds/:id/comments/:comment_id", checkCommentOwnership, (r
     });
 });
 
-function checkCommentOwnership(req, res, next){
-    if(req.isAuthenticated()){
-        // console.log(req.params.id);
-        Comment.findById(req.params.comment_id, (err, foundComment) => {
-            if(err){
-                console.log(err);
-                res.redirect("back");
-            }else{
-                if(foundComment.author.id.equals(req.user._id)){
-                    next();
-                }
-                else{
-                    res.redirect("back");
-                }
-            }
-        });
-    }else{
-        res.redirect("back");
-        
-    }
-}
+// function checkCommentOwnership(req, res, next){
+//     if(req.isAuthenticated()){
+//         // console.log(req.params.id);
+//         Comment.findById(req.params.comment_id, (err, foundComment) => {
+//             if(err){
+//                 console.log(err);
+//                 res.redirect("back");
+//             }else{
+//                 if(foundComment.author.id.equals(req.user._id)){
+//                     next();
+//                 }
+//                 else{
+//                     res.redirect("back");
+//                 }
+//             }
+//         });
+//     }else{
+//         res.redirect("back");
+//     }
+// }
 
-function isLoggedIn(req, res, next)  {
-    if(req.isAuthenticated()){
-        return next();
-    }
-    res.redirect("/login");
-}
+// function isLoggedIn(req, res, next)  {
+//     if(req.isAuthenticated()){
+//         return next();
+//     }
+//     res.redirect("/login");
+// }
 
 module.exports = router;
