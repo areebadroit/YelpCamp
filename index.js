@@ -19,7 +19,7 @@ var commentRoutes = require('./routes/comments'),
     indexRoutes = require('./routes/indexroutes');
 //==================================================================================================
 
-const database = 'mongodb+srv://areeb:zNntxsYsd8yhmYev@test-icewh.mongodb.net/test?retryWrites=true&w=majority'||'mongodb://localhost:27017/yelpcamp';
+const database = 'mongodb+srv://areeb:<password>@test-icewh.mongodb.net/test?retryWrites=true&w=majority'||'mongodb://localhost:27017/yelpcamp';
 mongoose.connect(database, { useNewUrlParser: true,useUnifiedTopology: true}, (err) => {
     if(err)
         console.log('Unable to connect to mongoDB servers');
